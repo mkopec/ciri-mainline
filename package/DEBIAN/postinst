@@ -11,6 +11,14 @@ if [ "$1" = configure ]; then
 			--subsystem-match=iio || true
 	fi
 
+	if command -v deb-systemd-helper >/dev/null; then
+		deb-systemd-helper enable ciri-speaker-calibration.service || true
+	fi
+	if [ -d /run/systemd/system ]; then
+		systemctl daemon-reload || true
+		systemctl start ciri-speaker-calibration.service || true
+	fi
+
 	if [ "${CIRI_SUPPORT_SKIP_FIRMWARE:-0}" != 1 ] &&
 	   [ ! -e /lib/firmware/himax_i2chid_1002.bin ]; then
 		echo "Downloading the ChromeOS recovery image for the Ciri firmware (about 1.8 GB)..."

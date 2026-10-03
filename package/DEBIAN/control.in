@@ -4,14 +4,15 @@ Architecture: all
 Maintainer: Michał Kopeć <michal@nozomi.space>
 Section: misc
 Priority: optional
-Depends: python3, unzip, e2fsprogs, ca-certificates, initramfs-tools
+Depends: python3, unzip, e2fsprogs, ca-certificates, initramfs-tools, alsa-utils
 Recommends: iio-sensor-proxy, libwacom-common, wireplumber
 Homepage: https://github.com/mkopec/ciri-mainline
 Description: Configuration and firmware installer for the Lenovo Chromebook Duet (Ciri)
  Configuration for running a mainline kernel on the Lenovo Chromebook
  Duet Gen 9 (Ciri, MediaTek MT8188): the audio UCM profile, the
  accelerometer mount matrix, a libwacom entry and udev rules for the
- stylus, the thermal governor rule, and an initramfs hook for the
+ stylus, the thermal governor rule, a service that applies the speaker
+ amplifier calibration from the VPD, and an initramfs hook for the
  touchscreen firmware.
  .
  The touchscreen and camera firmware is only shipped with ChromeOS and is

@@ -1,0 +1,71 @@
+#!/bin/sh
+# Apply the factory calibration of the MAX98390 speaker amplifiers, as
+# ChromeOS's sound_card_init does on Ciri.
+#
+# The calibration is stored in the RO VPD (dsm_calib_r0_N, dsm_calib_temp_N,
+# N = 0 for the left and 1 for the right amplifier). With a valid calibration
+# the amplifiers run at the normal digital volume (0 dB); without one, at the
+# lower safe mode volume (-11 dB), so that the speaker protection does not
+# work from wrong values at full gain.
+set -u
+
+CARD_ID=sofmt8188m98390
+VPD=/sys/firmware/vpd/ro
+NORMAL_VOLUME=160
+SAFE_VOLUME=138
+# Speaker resistance range in milliohms that ChromeOS accepts.
+RDC_MIN=5950
+RDC_MAX=8050
+
+log() {
+	echo "ciri-speaker-calibration: $*" >&2
+}
+
+card=
+for i in $(seq 50); do
+	for f in /sys/class/sound/card*/id; do
+		[ -r "$f" ] && [ "$(cat "$f")" = "$CARD_ID" ] && card=$(cat "$f")
+	done
+	[ -n "$card" ] && break
+	sleep 0.2
+done
+if [ -z "$card" ]; then
+	log "sound card $CARD_ID not found"
+	exit 0
+fi
+
+modprobe -q vpd-sysfs 2>/dev/null
+
+status=0
+for n in 0 1; do
+	case $n in
+	0) amp="Front Left" ;;
+	1) amp="Front Right" ;;
+	esac
+
+	volume=$SAFE_VOLUME
+	r0=$(cat "$VPD/dsm_calib_r0_$n" 2>/dev/null)
+	temp=$(cat "$VPD/dsm_calib_temp_$n" 2>/dev/null)
+	if [ -z "$r0" ] || [ -z "$temp" ]; then
+		log "$amp: no calibration in the VPD, using the safe mode volume"
+	elif [ "$r0" -le 0 ] 2>/dev/null; then
+		log "$amp: invalid calibration r0=$r0, using the safe mode volume"
+	else
+		# The driver's reference Rdc is 2^28 / the measured value, and
+		# the measured value is 937 / 65536 ohm per step.
+		rdc=$((3837952000 / r0))
+		if [ "$rdc" -lt "$RDC_MIN" ] || [ "$rdc" -gt "$RDC_MAX" ]; then
+			log "$amp: resistance ${rdc} mohm out of range, using the safe mode volume"
+		elif amixer -q -c "$card" cset name="$amp DSM Rdc" "$r0" &&
+		     amixer -q -c "$card" cset name="$amp DSM Ambient Temp" "$temp"; then
+			log "$amp: calibrated, ${rdc} mohm"
+			volume=$NORMAL_VOLUME
+		else
+			log "$amp: failed to set the calibration"
+			status=1
+		fi
+	fi
+	amixer -q -c "$card" cset name="$amp Digital Volume" "$volume" || status=1
+done
+
+exit $status

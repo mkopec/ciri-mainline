@@ -33,3 +33,23 @@ under review on [review.coreboot.org](https://review.coreboot.org/q/owner:michal
 | 95860 | payloads/external/LinuxBoot: Kernel config for MediaTek based Chromebooks | Under review |
 | 95861 | mb/google/geralt: Initialize the TPM and EC buses without vboot | Under review |
 | 95862 | soc/mediatek/mt8188: Enlarge the postram CBFS cache to 8 MiB | Under review |
+
+### VPD
+
+The factory calibration of the speaker amplifiers (`dsm_calib_r0_N`,
+`dsm_calib_temp_N`) and of the accelerometer and gyroscope is stored in the
+`RO_VPD` region of the stock firmware, which is unique to each device. Keep a
+backup of the stock firmware: with CONFIG_VPD, coreboot exposes an `RO_VPD`
+region, and the VPD from the backup can be copied into it before flashing:
+
+```sh
+cbfstool stock.rom read -r RO_VPD -f ro-vpd.bin
+# The stock region is 32 KiB, ours 16 KiB; the data only takes a few KiB.
+truncate -s 16K ro-vpd.bin
+cbfstool coreboot.rom write -r RO_VPD -f ro-vpd.bin
+```
+
+The region is preserved on updates. Linux shows the keys in
+`/sys/firmware/vpd/ro/`, and the `ciri-speaker-calibration` service applies
+the speaker calibration at boot, like `sound_card_init` on ChromeOS. Without
+it, the amplifiers run at a 11 dB lower digital volume.

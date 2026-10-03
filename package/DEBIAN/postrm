@@ -10,6 +10,10 @@ if [ "$1" = purge ]; then
 	rm -rf /var/lib/ciri-support
 fi
 
+if [ "$1" = purge ] && command -v deb-systemd-helper >/dev/null; then
+	deb-systemd-helper purge ciri-speaker-calibration.service || true
+fi
+
 if [ "$1" = remove ] || [ "$1" = purge ]; then
 	if command -v systemd-hwdb >/dev/null; then
 		systemd-hwdb update || true

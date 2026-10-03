@@ -1,0 +1,12 @@
+[Unit]
+Description=Apply the speaker amplifier calibration
+# Run after the ALSA state is restored, which would overwrite it.
+After=alsa-restore.service alsa-state.service sound.target
+Wants=sound.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/ciri-speaker-calibration
+
+[Install]
+WantedBy=sound.target
