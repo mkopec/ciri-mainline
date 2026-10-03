@@ -26,7 +26,7 @@ Status of each component with the kernel from [`kernel/`](kernel/).
 | Display (DSI panel) | Works | Mainline. |
 | External display (USB-C DP) | Works | Mainline. |
 | Keyboard (detachable base) | Works | Mainline (cros-ec). |
-| Touchpad (detachable base) | Works | DT patch pending, see `kernel/`. |
+| Touchpad (detachable base) | Works | DT patch posted, see `kernel/`. |
 | Touchscreen | Works | Himax HX83102J driver: v5 posted, v6 prepared. |
 | Stylus | Works | With the touchscreen driver; needs the udev rule in `rootfs/`. |
 | Speakers, headset, microphones | Works | ASoC fixes pending; UCM profile only in `rootfs/`, not in alsa-ucm-conf. |
@@ -34,10 +34,10 @@ Status of each component with the kernel from [`kernel/`](kernel/).
 | Wi-Fi, Bluetooth (MT7921) | Works | M.2 E-key power sequencing series by Chen-Yu Tsai, pending. Wi-Fi power saving disabled in `rootfs/`. |
 | GPU, OpenGL (Panfrost) | Works | Mesa fix pending for hardware video decode in Chromium. |
 | GPU, Vulkan (panvk) | Works | Mali-G57 (v9) support under review in Mesa. |
-| Hardware video decode | Works | H.264 needs a vcodec fix (pending), scaling needs MDP3 fixes (pending). |
+| Hardware video decode | Partly | H.264 needs a vcodec fix (pending), scaling needs MDP3 fixes (pending). AV1 fails: the driver rejects the AV1 data of the linux-firmware SCP firmware (`vsi size mismatch`). |
 | Camera | Partly | ChromeOS camsys driver imported out of tree, open libcamera pipeline handler; not upstreamable as is. |
 | Suspend (deep) | Works | Panfrost clock fix pending; the camera drivers need the mtk-smi fix. |
-| Thermal throttling | Works | Power allocator DT patch pending, governor set by the udev rule in `rootfs/`. |
+| Thermal throttling | Works | Power allocator DT patch posted, governor set by the udev rule in `rootfs/`. |
 | Screen rotation | Works | Accelerometer mount matrix in `rootfs/`; mutter older than 737d8f06 rotates on docking. |
 | Boot firmware | Works | coreboot with a LinuxBoot payload, changes under review, see `firmware.md`. |
 
