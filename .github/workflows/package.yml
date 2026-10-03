@@ -1,0 +1,74 @@
+name: Package
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  schedule:
+    # Weekly, to notice when a new ChromeOS release moves the firmware.
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: debian:testing
+    steps:
+      - name: Install build tools
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends git lintian ca-certificates
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Build
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
+            version=${GITHUB_REF_NAME#v}
+          else
+            version=0~git$(git log -1 --format=%cd --date=format:%Y%m%d).$(git rev-parse --short HEAD)
+          fi
+          package/build.sh "$version" dist
+      - name: Lintian
+        run: lintian --fail-on error dist/*.deb
+      - name: Install and remove
+        run: |
+          CIRI_SUPPORT_SKIP_FIRMWARE=1 apt-get install -y ./dist/*.deb
+          apt-get purge -y ciri-support
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ciri-support
+          path: dist/*.deb
+      - name: Release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          apt-get install -y --no-install-recommends gh
+          gh release create "$GITHUB_REF_NAME" dist/*.deb --title "$GITHUB_REF_NAME" \
+            --notes "The firmware is not included: the package downloads it from Google when it is installed." \
+            --repo "$GITHUB_REPOSITORY"
+
+  firmware:
+    # Check that the firmware can still be extracted from the current
+    # recovery image. The firmware itself is not uploaded anywhere.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install tools
+        run: sudo apt-get update && sudo apt-get install -y unzip e2fsprogs
+      - name: Extract
+        run: |
+          mkdir -p "$RUNNER_TEMP/fw"
+          python3 package/ciri-firmware-update --dest "$RUNNER_TEMP/fw" \
+            --workdir "$RUNNER_TEMP" --no-state
+          find "$RUNNER_TEMP/fw" -type f -printf '%s %p\n'
+          for f in himax_i2chid_1002.bin himax_i2chid_1003.bin; do
+            test "$(stat -c %s "$RUNNER_TEMP/fw/$f")" = 261120
+          done
+          rm -rf "$RUNNER_TEMP/fw"

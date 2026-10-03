@@ -1,0 +1,19 @@
+# Google Ciri: the panel is natively portrait (rotation = <270> in DT), and
+# the CrOS EC lid accelerometer reports in that native frame, so orientation
+# is 90 degrees off in the landscape (keyboard) layout used by the desktop.
+#
+# This is the stock systemd CrOS matrix (-I) composed with a 90 degree turn
+# around Z. If the result is upside down, use the other variant below.
+#
+# Install to /etc/udev/hwdb.d/, then:
+#   sudo systemd-hwdb update
+#   sudo udevadm trigger -s iio
+#   sudo systemctl restart iio-sensor-proxy
+# Check with: monitor-sensor
+
+sensor:modalias:platform:cros-ec-accel:*
+sensor:accel-display:modalias:platform:cros-ec-accel:*
+ ACCEL_MOUNT_MATRIX=0, 1, 0; -1, 0, 0; 0, 0, -1
+
+# Opposite direction:
+# ACCEL_MOUNT_MATRIX=0, -1, 0; 1, 0, 0; 0, 0, -1

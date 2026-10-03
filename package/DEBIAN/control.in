@@ -1,0 +1,20 @@
+Package: ciri-support
+Version: @VERSION@
+Architecture: all
+Maintainer: Michał Kopeć <michal@nozomi.space>
+Section: misc
+Priority: optional
+Depends: python3, unzip, e2fsprogs, ca-certificates, initramfs-tools
+Recommends: iio-sensor-proxy, wireplumber
+Homepage: https://github.com/mkopec/ciri-mainline
+Description: Configuration and firmware installer for the Lenovo Chromebook Duet (Ciri)
+ Configuration for running a mainline kernel on the Lenovo Chromebook Duet
+ Gen 9 (Ciri, MediaTek MT8188): the audio UCM profile, the accelerometer
+ mount matrix, udev rules for the stylus and the thermal governor, and an
+ initramfs hook for the touchscreen firmware.
+ .
+ The touchscreen and camera firmware is only shipped with ChromeOS and is
+ not included. On installation, ciri-firmware-update downloads the official
+ ChromeOS recovery image for Ciri from Google and copies the firmware out of
+ it. Set CIRI_SUPPORT_SKIP_FIRMWARE=1 to skip this, and run
+ ciri-firmware-update later.

@@ -1,0 +1,2 @@
+# Use the power allocator governor for the MT8188 CPU thermal zones.
+SUBSYSTEM=="thermal", KERNEL=="thermal_zone*", ATTR{type}=="cpu-*-thermal", ATTR{policy}="power_allocator"

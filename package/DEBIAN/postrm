@@ -1,0 +1,22 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = purge ]; then
+	if [ -f /var/lib/ciri-support/firmware.list ]; then
+		while read -r f; do
+			rm -f "$f"
+		done < /var/lib/ciri-support/firmware.list
+	fi
+	rm -rf /var/lib/ciri-support
+fi
+
+if [ "$1" = remove ] || [ "$1" = purge ]; then
+	if command -v systemd-hwdb >/dev/null; then
+		systemd-hwdb update || true
+	fi
+	if command -v update-initramfs >/dev/null; then
+		update-initramfs -u || true
+	fi
+fi
+
+exit 0

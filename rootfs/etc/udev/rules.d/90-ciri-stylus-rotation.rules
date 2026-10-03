@@ -1,0 +1,4 @@
+# The stylus of the Himax touchscreen is on SPI (bus 0x1c). Report it as an
+# I2C device (bus 0x18), so that it is mapped to the built-in display and
+# follows the screen rotation.
+ACTION!="remove", SUBSYSTEM=="input", KERNEL=="event*", ATTRS{name}=="hid-hxtp 4858:1002 Stylus", ENV{PRODUCT}="18/4858/1002/300"

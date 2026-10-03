@@ -1,0 +1,193 @@
+#!/usr/bin/python3
+# SPDX-License-Identifier: MIT
+"""Install the Ciri firmware that is only shipped with ChromeOS.
+
+Downloads the official ChromeOS recovery image for Ciri (board geralt) from
+Google, verifies it, and copies the touchscreen and SCP firmware out of its
+root filesystem. Nothing is redistributed: the image comes straight from
+Google to the machine it is installed on.
+"""
+
+import argparse
+import hashlib
+import json
+import os
+import re
+import shutil
+import struct
+import subprocess
+import sys
+import tempfile
+import urllib.request
+
+RECOVERY_INDEX = "https://dl.google.com/dl/edgedl/chromeos/recovery/recovery2.json"
+HWID_PREFIX = "^CIRI-"
+ROOT_PARTITION = "ROOT-A"
+SECTOR = 512
+
+# Path in the ChromeOS root filesystem -> path below the firmware directory.
+FIRMWARE = {
+    "/lib/firmware/himax_i2chid_1002.bin": "himax_i2chid_1002.bin",
+    "/lib/firmware/himax_i2chid_1003.bin": "himax_i2chid_1003.bin",
+    "/lib/firmware/himax_i2chid_1004.bin": "himax_i2chid_1004.bin",
+    "/lib/firmware/mediatek/mt8188/scp-dual.img": "mediatek/mt8188/scp-dual.img",
+}
+
+STATE_LIST = "/var/lib/ciri-support/firmware.list"
+
+
+def log(msg):
+    print(f"ciri-firmware-update: {msg}", file=sys.stderr, flush=True)
+
+
+def select_image(channel):
+    with urllib.request.urlopen(RECOVERY_INDEX, timeout=60) as r:
+        index = json.load(r)
+    images = [e for e in index
+              if e.get("hwidmatch", "").startswith(HWID_PREFIX)
+              and e.get("channel", "").upper() == channel.upper()]
+    if not images:
+        raise SystemExit(f"no {channel} recovery image for Ciri in {RECOVERY_INDEX}")
+    return max(images, key=lambda e: [int(x) for x in e["version"].split(".")])
+
+
+def download(image, path):
+    sha1 = hashlib.sha1()
+    done = 0
+    total = int(image["zipfilesize"])
+    log(f"downloading {image['url']} ({total >> 20} MiB)")
+    with urllib.request.urlopen(image["url"], timeout=60) as r, open(path, "wb") as f:
+        while chunk := r.read(1 << 20):
+            f.write(chunk)
+            sha1.update(chunk)
+            done += len(chunk)
+            if sys.stderr.isatty():
+                print(f"\r{done >> 20}/{total >> 20} MiB", end="", file=sys.stderr)
+    if sys.stderr.isatty():
+        print(file=sys.stderr)
+    if done != total or sha1.hexdigest() != image["sha1"]:
+        raise SystemExit("download does not match the size or SHA-1 of the recovery index")
+
+
+def read_exact(stream, n):
+    buf = bytearray()
+    while len(buf) < n:
+        chunk = stream.read(n - len(buf))
+        if not chunk:
+            raise SystemExit("recovery image ended early")
+        buf += chunk
+    return bytes(buf)
+
+
+def find_partition(gpt, name):
+    sig, _, _, _, _, _, _, _, _, _, entries_lba, count, size = struct.unpack_from(
+        "<8sIIIIQQQQ16sQII", gpt, SECTOR)
+    if sig != b"EFI PART":
+        raise SystemExit("recovery image has no GPT")
+    for i in range(count):
+        off = entries_lba * SECTOR + i * size
+        if off + size > len(gpt):
+            break
+        first, last = struct.unpack_from("<QQ", gpt, off + 32)
+        pname = gpt[off + 56:off + 128].decode("utf-16-le").rstrip("\0")
+        if pname == name:
+            return first * SECTOR, (last - first + 1) * SECTOR
+    raise SystemExit(f"recovery image has no {name} partition")
+
+
+def extract_rootfs(zip_path, out_path):
+    """Stream the image out of the zip and keep only the root filesystem."""
+    unzip = subprocess.Popen(["unzip", "-p", zip_path], stdout=subprocess.PIPE)
+    stream = unzip.stdout
+    head = read_exact(stream, 34 * SECTOR)
+    start, part_size = find_partition(head, ROOT_PARTITION)
+    pos = len(head)
+    while pos < start:
+        pos += len(read_exact(stream, min(1 << 20, start - pos)))
+
+    first = read_exact(stream, 2048)
+    blocks, = struct.unpack_from("<I", first, 1024 + 4)
+    log_bs, = struct.unpack_from("<I", first, 1024 + 24)
+    magic, = struct.unpack_from("<H", first, 1024 + 56)
+    if magic != 0xef53:
+        raise SystemExit(f"{ROOT_PARTITION} is not an ext2/3/4 file system")
+    fs_size = min(blocks * (1024 << log_bs), part_size)
+
+    with open(out_path, "wb") as f:
+        f.write(first)
+        left = fs_size - len(first)
+        while left:
+            chunk = read_exact(stream, min(1 << 20, left))
+            f.write(chunk)
+            left -= len(chunk)
+    unzip.kill()
+    unzip.wait()
+
+
+def debugfs(image, request):
+    return subprocess.run(["debugfs", "-R", request, image], check=True,
+                          capture_output=True, text=True).stdout
+
+
+def resolve(image, path):
+    for _ in range(8):
+        stat = debugfs(image, f"stat {path}")
+        link = re.search(r'(?:Fast link dest|Link dest): "([^"]+)"', stat)
+        if not link:
+            if "Type: regular" not in stat:
+                raise SystemExit(f"{path} not found in the recovery image")
+            return path
+        target = link.group(1)
+        path = target if target.startswith("/") else os.path.join(os.path.dirname(path), target)
+    raise SystemExit(f"too many symbolic links at {path}")
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--dest", default="/lib/firmware",
+                    help="firmware directory to install to (default: %(default)s)")
+    ap.add_argument("--channel", default="stable",
+                    help="recovery image channel: stable, beta, ltc or ltr (default: %(default)s)")
+    ap.add_argument("--zip", help="use an already downloaded recovery image zip")
+    ap.add_argument("--workdir", default="/var/tmp",
+                    help="directory for temporary files, needs about 4.5 GiB (default: %(default)s)")
+    ap.add_argument("--no-state", action="store_true",
+                    help="do not record the installed files for package removal")
+    args = ap.parse_args()
+
+    with tempfile.TemporaryDirectory(prefix="ciri-firmware.", dir=args.workdir) as tmp:
+        zip_path = args.zip
+        if not zip_path:
+            image = select_image(args.channel)
+            log(f"using ChromeOS {image['version']} ({image['channel']})")
+            zip_path = os.path.join(tmp, "recovery.zip")
+            download(image, zip_path)
+
+        rootfs = os.path.join(tmp, "rootfs.img")
+        log(f"extracting {ROOT_PARTITION}")
+        extract_rootfs(zip_path, rootfs)
+        if not args.zip:
+            os.unlink(zip_path)
+
+        installed = []
+        for src, rel in FIRMWARE.items():
+            real = resolve(rootfs, src)
+            dst = os.path.join(args.dest, rel)
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            out = os.path.join(tmp, "out")
+            debugfs(rootfs, f"dump {real} {out}")
+            if os.path.getsize(out) == 0:
+                raise SystemExit(f"{src} is empty in the recovery image")
+            shutil.move(out, dst)
+            os.chmod(dst, 0o644)
+            installed.append(dst)
+            log(f"installed {dst}")
+
+    if not args.no_state:
+        os.makedirs(os.path.dirname(STATE_LIST), exist_ok=True)
+        with open(STATE_LIST, "w") as f:
+            f.write("".join(p + "\n" for p in installed))
+
+
+if __name__ == "__main__":
+    main()

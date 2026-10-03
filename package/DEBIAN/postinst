@@ -1,0 +1,27 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = configure ]; then
+	if command -v systemd-hwdb >/dev/null; then
+		systemd-hwdb update || true
+	fi
+	if command -v udevadm >/dev/null; then
+		udevadm control --reload || true
+		udevadm trigger --subsystem-match=thermal --subsystem-match=input \
+			--subsystem-match=iio || true
+	fi
+
+	if [ "${CIRI_SUPPORT_SKIP_FIRMWARE:-0}" != 1 ] &&
+	   [ ! -e /lib/firmware/himax_i2chid_1002.bin ]; then
+		echo "Downloading the ChromeOS recovery image for the Ciri firmware (about 1.8 GB)..."
+		if ! ciri-firmware-update; then
+			echo "WARNING: the firmware could not be installed. Run 'ciri-firmware-update' as root." >&2
+		fi
+	fi
+
+	if command -v update-initramfs >/dev/null; then
+		update-initramfs -u || true
+	fi
+fi
+
+exit 0
