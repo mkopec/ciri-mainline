@@ -13,7 +13,6 @@ git clone -b ciri-full https://github.com/mkopec/linux.git
 | Patches | Upstream status |
 | --- | --- |
 | M.2 E-key power sequencing (Chen-Yu Tsai), Wi-Fi/BT on Geralt | Pending, by the author |
-| Input: himax_hx83112b: HX83102J support (Dmitry Mastykin) | Pending, by the author; not needed by Ciri (I2C variant) |
 | ASoC: mediatek: card probe and topology name fixes, UL8 constraints; hdmi-codec: empty ELD | Prepared, not sent |
 | drm/mediatek: dp: audio while no sink is connected | Prepared, not sent |
 | drm/panfrost: unprepare clocks on suspend, MT8188 GPU timestamp | Prepared, not sent |
