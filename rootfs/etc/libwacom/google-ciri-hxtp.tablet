@@ -1,0 +1,17 @@
+# Lenovo Chromebook Duet Gen 9 (Ciri), Himax HX83102J touchscreen and stylus
+# The touchscreen is on SPI, which libwacom does not match; the udev rule
+# 90-ciri-stylus-rotation.rules reports the stylus as an I2C device.
+# Width and Height are in millimetres.
+
+[Device]
+Name=Google Ciri HXTP 4858:1002 Pen
+DeviceMatch=i2c|4858|1002
+Class=ISDV4
+Width=150
+Height=240
+IntegratedIn=Display;System;
+Styli=@generic-no-eraser;
+
+[Features]
+Stylus=true
+Touch=true

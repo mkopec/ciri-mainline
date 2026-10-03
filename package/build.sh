@@ -23,6 +23,8 @@ install_file rootfs/etc/udev/rules.d/60-cpu-thermal-power-allocator.rules \
 	usr/lib/udev/rules.d/60-cpu-thermal-power-allocator.rules 644
 install_file rootfs/etc/udev/rules.d/90-ciri-stylus-rotation.rules \
 	usr/lib/udev/rules.d/90-ciri-stylus-rotation.rules 644
+install_file rootfs/etc/libwacom/google-ciri-hxtp.tablet \
+	usr/share/libwacom/google-ciri-hxtp.tablet 644
 install_file rootfs/etc/NetworkManager/conf.d/99-ciri-wifi-no-powersave.conf \
 	usr/lib/NetworkManager/conf.d/99-ciri-wifi-no-powersave.conf 644
 install_file rootfs/etc/initramfs-tools/hooks/himax-fw \

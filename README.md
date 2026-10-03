@@ -28,7 +28,7 @@ Status of each component with the kernel from [`kernel/`](kernel/).
 | Keyboard (detachable base) | Works | Mainline (cros-ec). |
 | Touchpad (detachable base) | Works | DT patch posted, see `kernel/`. |
 | Touchscreen | Works | Himax HX83102J driver: v5 posted, v6 prepared. |
-| Stylus | Works | With the touchscreen driver; needs the udev rule in `rootfs/`. |
+| Stylus | Works | With the touchscreen driver; needs the libwacom entry and the udev rule in `rootfs/`, not in libwacom. |
 | Speakers, headset, microphones | Works | ASoC fixes pending; UCM profile only in `rootfs/`, not in alsa-ucm-conf. |
 | DP audio | Works | drm/mediatek patch pending. |
 | Wi-Fi, Bluetooth (MT7921) | Works | M.2 E-key power sequencing series by Chen-Yu Tsai, pending. Wi-Fi power saving disabled in `rootfs/`. |
