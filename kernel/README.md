@@ -13,13 +13,14 @@ git clone -b ciri-full https://github.com/mkopec/linux.git
 | Patches | Upstream status |
 | --- | --- |
 | M.2 E-key power sequencing (Chen-Yu Tsai), Wi-Fi/BT on Geralt | Pending, by the author |
-| ASoC: mediatek: card probe and topology name fixes, UL8 constraints; hdmi-codec: empty ELD | Prepared, not sent |
+| ASoC: mediatek: card probe and topology name fixes, UL8 constraints; hdmi-codec: empty ELD | [Posted](https://lore.kernel.org/all/20261003194501.832558-1-michal@nozomi.space/) |
 | drm/mediatek: dp: audio while no sink is connected | Prepared, not sent |
-| drm/panfrost: unprepare clocks on suspend, MT8188 GPU timestamp | Prepared, not sent |
+| drm/panfrost: MT8188 GPU timestamp (binding, driver, devicetree) | [Posted](https://lore.kernel.org/all/20261003200132.866240-1-michal@nozomi.space/) |
+| drm/panfrost: unprepare clocks on suspend | Prepared, not sent |
 | media: mediatek: vcodec: extended H.264 VSI on MT8188 | Prepared, not sent |
 | media: mtk-mdp3: GCE power, RSZ merge switch on MT8188 | Prepared, not sent |
 | arm64: dts: mt8188-geralt: Enlarge SCP core0 memory region (Justin Yeh) | In the MediaTek tree (`v7.3-next/dts64`) |
-| arm64: dts: mt8188: SCP core 1 reservation, power allocator, touchpad | [Posted](https://lore.kernel.org/all/?q=s%3A%22SCP+memory%2C+thermal+and+touchpad+fixes%22) |
+| arm64: dts: mt8188: SCP core 1 reservation, power allocator, touchpad | [Posted](https://lore.kernel.org/all/20261003193108.789939-1-michal@nozomi.space/) |
 | Himax HX83102J touchscreen: binding, driver, Ciri devicetree | [v5](https://lore.kernel.org/all/20261003142741.48634-1-michal@nozomi.space/) posted, v6 prepared |
 | LOCAL: drm/mediatek: merge: raise the prefetch data rate limit | Local workaround, not for upstream |
 | Camera: ISP 7.1 camsys, imgsys and AIE drivers imported from ChromeOS, mtk-smi larb clamp/reset, fixes | Out of tree; waits for MediaTek's upstream camsys series |
