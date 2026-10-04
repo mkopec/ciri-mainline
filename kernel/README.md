@@ -15,6 +15,7 @@ git clone -b ciri-full https://github.com/mkopec/linux.git
 | M.2 E-key power sequencing (Chen-Yu Tsai), Wi-Fi/BT on Geralt | Pending, by the author |
 | ASoC: mediatek: card probe and topology name fixes, UL8 constraints; hdmi-codec: empty ELD | [Posted](https://lore.kernel.org/all/20261003194501.832558-1-michal@nozomi.space/) |
 | drm/mediatek: dp: audio while no sink is connected | Prepared, not sent |
+| drm/bridge-connector: max bpc, HDR_OUTPUT_METADATA and Colorspace for non-HDMI bridges; drm/mediatek: 10-bit RDMA formats, 10 bpc DP output, HDR infoframe SDP | Local, not sent |
 | drm/panfrost: MT8188 GPU timestamp (binding, driver, devicetree) | [Posted](https://lore.kernel.org/all/20261003200132.866240-1-michal@nozomi.space/) |
 | drm/panfrost: unprepare clocks on suspend | Prepared, not sent |
 | media: mediatek: vcodec: extended H.264 VSI on MT8188, larger AV1 VSI from the firmware | Prepared, not sent |

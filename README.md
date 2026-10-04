@@ -24,7 +24,7 @@ Status of each component with the kernel from [`kernel/`](kernel/).
 | Component | Status | Notes |
 | --- | --- | --- |
 | Display (DSI panel) | Works | Mainline. |
-| External display (USB-C DP) | Works | Mainline. |
+| External display (USB-C DP) | Works | Mainline. 10-bit output and HDR10 need the drm patches in `kernel/` (not sent); BT.2020 colorimetry is not signalled to the monitor yet. |
 | Keyboard (detachable base) | Works | Mainline (cros-ec). |
 | Touchpad (detachable base) | Works | DT patch posted, see `kernel/`. |
 | Touchscreen | Works | Himax HX83102J driver: v5 posted, v6 prepared. |
