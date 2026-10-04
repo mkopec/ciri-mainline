@@ -34,7 +34,7 @@ Status of each component with the kernel from [`kernel/`](kernel/).
 | Wi-Fi, Bluetooth (MT7921) | Works | M.2 E-key power sequencing series by Chen-Yu Tsai, pending. Wi-Fi power saving disabled in `rootfs/`. |
 | GPU, OpenGL (Panfrost) | Works | Mesa fix pending for hardware video decode in Chromium. |
 | GPU, Vulkan (panvk) | Works | Mali-G57 (v9) support under review in Mesa. |
-| Hardware video decode | Partly | H.264 needs a vcodec fix (pending), scaling needs MDP3 fixes (pending). AV1 fails: the driver rejects the AV1 data of the linux-firmware SCP firmware (`vsi size mismatch`). |
+| Hardware video decode | Works | H.264 needs a vcodec fix (pending), scaling needs MDP3 fixes (pending). AV1 works; the `vsi size mismatch` error it logs is harmless (fix pending). |
 | Camera | Partly | ChromeOS camsys driver imported out of tree, open libcamera pipeline handler; not upstreamable as is. |
 | Suspend (deep) | Works | Panfrost clock fix pending; the camera drivers need the mtk-smi fix. |
 | Thermal throttling | Works | Power allocator DT patch posted, governor set by the udev rule in `rootfs/`. |

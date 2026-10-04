@@ -17,7 +17,7 @@ git clone -b ciri-full https://github.com/mkopec/linux.git
 | drm/mediatek: dp: audio while no sink is connected | Prepared, not sent |
 | drm/panfrost: MT8188 GPU timestamp (binding, driver, devicetree) | [Posted](https://lore.kernel.org/all/20261003200132.866240-1-michal@nozomi.space/) |
 | drm/panfrost: unprepare clocks on suspend | Prepared, not sent |
-| media: mediatek: vcodec: extended H.264 VSI on MT8188 | Prepared, not sent |
+| media: mediatek: vcodec: extended H.264 VSI on MT8188, larger AV1 VSI from the firmware | Prepared, not sent |
 | media: mtk-mdp3: GCE power, RSZ merge switch on MT8188 | Prepared, not sent |
 | arm64: dts: mt8188-geralt: Enlarge SCP core0 memory region (Justin Yeh) | In the MediaTek tree (`v7.3-next/dts64`) |
 | arm64: dts: mt8188: SCP core 1 reservation, power allocator, touchpad | [Posted](https://lore.kernel.org/all/20261003193108.789939-1-michal@nozomi.space/) |
